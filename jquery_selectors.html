@@ -1,0 +1,101 @@
+<html>
+<head>
+  <title>jQuery Selectors</title>
+  <style type="text/css">
+    .item {
+      padding: 8px;
+      width: 200px;
+      background: #ccc;
+    }
+    .item.active {
+      background: #cfc;
+    }
+  </style>
+</head>
+<body>
+
+<form class="new-item">
+  <label>Pre-Filled Name Input: </label><input class="name" type="text" value="Mitch Thomson" />
+  <br />
+  <label>Pre-Filled Price Input: </label>
+  <input type="text" class="price" value="Mitch is $19">
+  <br />
+  <input class="submit" type="submit" value="SUBMIT!"></input>
+</form>
+
+<div id="items">
+  <div class="item">
+    <label>Item One</label>
+    <div class="price">$11</div>
+  </div>
+
+  <div class="item active">
+    <label>Item Two</label>
+    <div class="price">$22</div>
+  </div>
+
+  <div class="item">
+    <label>Item Three</label>
+    <div class="price">$33</div>
+  </div>
+</div>
+
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script type="text/javascript">
+
+// TODO
+
+//ex 1.1
+//$('.item.active')
+
+//ex 1.2
+//$('input.price')
+
+//ex 2.1
+//$('input.name').val()
+
+//ex 2.2
+//$('input.price').val()
+
+//ex 2.3
+$('form.new-item').on('submit', function (e) {
+  e.preventDefault();
+
+  // In jQuery, the value of `this` is the element that triggered the event
+  // In this case, `this` points to the form tag
+  var newItemName = $('.price', this).val();
+  console.log(newItemName);
+});
+
+//ex 3.1
+//$('div.item.active').append('<p>Buy one, Get one!!</p>');
+
+//ex 3,2
+//$('.price:eq(3)').remove();
+
+//ex 3.3
+//$('.item:eq(2)').append('<div class="price">$121</div>');
+
+//ex 4.1
+//$('.item:eq(0)').css('width', 60).css('font-size', 25);
+
+//ex 4.2
+//$('input.name').css('font-size', 30).parent().css('background-color', 'lime');
+
+//ex 4.3
+//$('body').css('background-teal', 'lime').find('.item').css('font-size', 15).parent().css('height', 60);
+
+//ex 4.4
+$('form.new-item').on('submit', function (e) {
+  e.preventDefault();
+
+  // In jQuery, the value of `this` is the element that triggered the event
+  // In this case, `this` points to the form tag
+  var newItemName = $('.name', this).val();
+  $('#items').append(newItemName);
+});
+
+</script>
+</body>
+</html>

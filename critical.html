@@ -1,0 +1,191 @@
+<html>
+<head>
+  <title>jQuery Selectors</title>
+  <style type="text/css">
+    .item {
+      padding: 8px;
+      width: 200px;
+      background: #ccc;
+    }
+    .item.active {
+      background: #cfc;
+    }
+  </style>
+</head>
+<body>
+
+<ul class="reviewers"></ul>
+<h3>Top Restaurants</h3>
+<ul class="top-restaurants"></ul>
+<h3>Popular Movie Genres</h3>
+<ul class="movie-genres"></ul>
+<h3>Chawsome Cheeses</h3>
+<div class="cheeses"></div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script type="text/javascript">
+
+
+
+// TODO
+
+function rated8(){
+  var ul = $('ul.top-restaurants')
+  $.get("http://critics.api.mks.io/restaurants", function (reviews) {
+    
+    reviews.forEach(function(r) {     
+      
+      var li = $('<li>')
+      var strong = $('<strong>')
+
+      if (r.rating >= 8) {
+        console.log(r.rating, "-", r.venue);
+        strong.text(r.rating)
+        li.append(strong)
+        li.append("-" + r.venue)
+        ul.append(li)
+      }
+    })
+
+  })
+
+}
+
+function in_austin(){
+
+  $.get("http://critics.api.mks.io/restaurants", function (reviews) {
+    
+    console.log("Austin Restaurants:");
+    
+
+    reviews.forEach(function(r) {
+      if ( r.location && r.location.toLowerCase().indexOf("austin") > -1) {
+        console.log(r.venue);
+      }
+    })
+
+  })
+
+}
+
+function pop_movies(){
+
+  $.get("http://critics.api.mks.io/movie-genres", function (reviews) {
+    
+    console.log("Popular Movie Genres:");
+    var counts = {}
+
+    reviews.forEach(function(r) {
+      counts[r.genre] || (counts[r.genre] = 0)
+      counts[r.genre] += 1
+      
+    })
+
+    var top_pop = []
+
+    for (var g in counts) { 
+      var o = {genre:g, count:counts[g]};
+      top_pop.push(o)
+    }
+    
+    top_pop.sort(function(a, b){
+       return b.count-a.count
+    })
+  
+    for(i=0; i < 3; i++){
+      console.log(top_pop[i].genre + " - " + top_pop[i].count + " reviews");
+
+      
+    } 
+    
+  });
+
+}
+
+function top_movies(){
+  var ul = $('ul.movie-genres')
+  $.get("http://critics.api.mks.io/movie-genres", function (reviews) {
+    
+    console.log("Top Movie Genres:");
+    var counts = {}
+    
+
+    reviews.forEach(function(r) {
+      counts[r.genre] || (counts[r.genre] = 0 )
+      counts[r.genre] += 1
+    })
+
+    var ratingz = {}
+
+    reviews.forEach(function(r) {
+      ratingz[r.genre] || (ratingz[r.genre] = 0)
+      ratingz[r.genre] += parseInt(r.rating)
+      
+    })
+  
+    var top = []
+
+    for (var g in counts) { 
+      var o = {genre:g, rating: parseFloat(ratingz[g] / counts[g]), count: counts[g]};
+      top.push(o)
+    }
+    
+    top.sort(function(a, b){
+       return b.count-a.count
+    })
+    
+   
+
+    for(i=0; i < 3; i++){
+
+      var li = $('<li>')
+      var strong = $('<strong>')
+      var ii = $('<i>')
+
+      console.log(top[i].genre + " - " + top[i].rating);
+
+      strong.text(top[i].rating + " ")
+      ii.text( top[i].count + " reviews")
+
+      li.append(top[i].genre + " - ")
+      li.append(strong)
+      li.append(ii)
+      ul.append(li)
+    }
+    
+  });
+
+}
+
+function cheese_info(){
+  var div1 = $('div.cheeses')
+  $.get("http://critics.api.mks.io/cheeses", function (reviews) {
+    
+    reviews.forEach(function(r) {
+
+      var div_r = $('<div class="review">')
+      var header = $('<h3>')
+      var block = $('<blockquote>')
+      var cite = $('<cite>')
+
+      cite.text("--" + r.reviewer)
+      block.text(r.comment + " ")
+      block.append(cite)
+      header.text(r.cheese)
+        
+      console.log(r.cheese + ": " + r.comment +" --"+ r.reviewer);
+
+      div_r.append(header)   
+      div_r.append(block)
+      div1.append(div_r) 
+    })
+
+  })
+
+}
+
+cheese_info();
+
+</script>
+</body>
+</html>

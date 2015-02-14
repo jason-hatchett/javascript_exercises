@@ -1,0 +1,70 @@
+<html>
+<head>
+  <title>jQuery Basic</title>
+</head>
+<body>
+
+  
+<form class="cheese">
+  <h3>New Cheese Review</h3>
+
+  <div class="errors"></div>
+
+  <label>Reviewer name:</label>
+  <input type="text" name="reviewer" />
+  <br />
+  <label>Comment:</label>
+  <input type="text" name="comment" />
+  <br />
+  <label>Rating:</label>
+  <input type="text" name="rating" />
+  <br />
+  <label>Cheese:</label>
+  <input type="text" name="cheese" />
+  <br />
+
+  <input type="submit" value="Submit Review" />
+</form>
+
+
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+<script type="text/javascript">
+
+$('form.cheese').on('submit', function (e) {
+  e.preventDefault()
+
+  // Delete this next line when it starts getting annoying :)
+  //alert("You submitted the form! (but I stopped it)")
+
+  var requestBody = {}
+  requestBody.reviewer = $('[name=reviewer]', this).val()
+  requestBody.comment = $('[name=comment]', this).val()
+  requestBody.rating = $('[name=rating]', this).val()
+  requestBody.cheese = $('[name=cheese]', this).val()
+
+  var url = "http://critics.api.mks.io/cheeses"
+  $('form.cheese .errors').empty()
+  $.post(url, requestBody)
+    .done(function(newCheese) {
+      console.log("Success! Created new cheese review:", newCheese)
+    })
+    .fail(function(error) {
+      var errorObj = JSON.parse(error.responseText)
+
+      for (var fieldName in errorObj) {
+        var errorText = errorObj[fieldName].join('; ')
+
+        var $errorDiv = $('<div>').addClass('error')
+        $errorDiv.html(fieldName + " - " + errorText)
+
+        $('form.cheese .errors').append($errorDiv)
+      }
+    })
+})
+
+</script>
+
+</body>
+</html>

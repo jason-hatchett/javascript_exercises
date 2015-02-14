@@ -1,0 +1,375 @@
+<html>
+<head>
+  <title>Pet Shop World</title>
+</head>
+<body>
+
+<select class="pet-shops">
+  <option>-- Please Select a Pet Shop --</option>
+</select>
+
+<div class="pet-shop">
+  <h3 class="title">Please select a Pet Shop above</h3>
+
+  <div class="cats"></div>
+  <div class="dogs"></div>
+
+  <form class="new-cat"></form>
+  <form class="new-dog"></form>
+</div>
+
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script type="text/javascript">
+var host = "http://pet-shop.api.mks.io"
+// vm stands for view-model. This is the current state of our user interface
+var vm = {
+  shops: [],
+  cats: [],
+  dogs: []
+}
+
+// Reusable utility function
+var findById = function (array, id) {
+  for (var i=0; i < array.length; i++) {
+    var obj = array[i]
+    if (obj.id === id) return obj
+  }
+  return null
+}
+
+// Get all pet shops on page load
+$.get(host + '/shops', function (shops) {
+  vm.shops = shops
+  console.log("Got shops:", shops)
+
+  var $select = $('select.pet-shops')
+  shops.forEach(function(shop) {
+    var $option = $('<option>').text(shop.name).attr('value', shop.id)
+    $select.append($option)
+  })
+})
+
+var activeShop = null
+$('select.pet-shops').on('change', function (e) {
+  var shopId = parseInt( $(this).val() )
+  activeShop = findById(vm.shops, shopId)
+  console.log("Selected:", shopId, activeShop)
+
+  $('.pet-shop h3.title').text(activeShop.name)
+
+  // TODO: MAKE GET REQUEST TO GET CATS AND THEN CALL renderCats
+  $.get(host + "/shops/" + shopId + "/cats", function (catts){
+    vm.cats = catts
+    console.log("Got cats:", vm.cats)
+    renderCats(vm.cats)
+  })
+
+  // TODO: MAKE GET REQUEST TO GET DOGS AND THEN CALL renderDogs
+  $.get(host + "/shops/" + shopId + "/dogs", function (doges){
+    vm.dogs = doges
+    console.log("Got dogs:", vm.dogs)
+    renderDogs(vm.dogs)
+  })
+
+  //TODO: forms for new dog and new cat
+  //add cat form
+  var form_cat = $('form.new-cat').empty()
+  form_cat.append($('<h4>').text("Add Cat?"))
+  form_cat.append("Cat Name:", $('<br>'))
+  form_cat.append($('<input>', {
+    type : "text",
+    id : "cat-name",
+    value : ""
+  }))
+
+  form_cat.append($('<br>'))
+  form_cat.append("Cat Image URL:", $('<br>'))
+  form_cat.append($('<input>', {
+    type : "text",
+    id : "cat-image",
+    value : ""
+  }))
+
+  form_cat.append($('<br>'))
+  form_cat.append($('<br>'))
+  form_cat.append($('<input>', {
+    type : "submit",
+    value : "Add New Cat"
+  }))
+
+  //add dog form
+  var form_dog = $('form.new-dog').empty()
+  form_dog.append($('<h4>').text("Add Dog?"))
+  form_dog.append("Dog Name:", $('<br>'))
+  form_dog.append($('<input>', {
+    type : "text",
+    id : "dog-name",
+    value : ""
+  }))
+
+  form_dog.append($('<br>'))
+  form_dog.append("Dog Image URL:", $('<br>'))
+  form_dog.append($('<input>', {
+    type : "text",
+    id : "dog-image",
+    value : ""
+  }))
+
+  form_dog.append($('<br>'))
+  form_dog.append("Happiness:", $('<br>'))
+  form_dog.append($('<input>', {
+    type : "text",
+    id : "dog-happy",
+    value : ""
+  }))
+
+  form_dog.append($('<br>'))
+  form_dog.append($('<br>'))
+  form_dog.append($('<input>', {
+    type : "submit",
+    value : "Add New Dog"
+  }))
+
+})
+
+//on-click adoption
+$(document).on('click', 'a.adopt', function(e) {
+    //console.log("click event")
+    e.preventDefault();
+    $.ajax({
+      type: 'PUT',
+      url: (host + "/shops/" + activeShop.id + "/"+ $(e.target).parent().parent().parent().attr("class") + "/" +$(e.target).attr("href").replace("#","")),
+      data: { adopted: true },
+      success: function(data){
+
+        //refresh cats
+        $.get(host + "/shops/" + activeShop.id + "/cats", function (c){
+          vm.cats = c
+          console.log("Got cats:", vm.cats)
+          renderCats(vm.cats)
+        })
+      
+        //refresh dogs
+        $.get(host + "/shops/" + activeShop.id + "/dogs", function (d){
+          vm.dogs = d
+          console.log("Got dogs:", vm.dogs)
+          renderDogs(vm.dogs)
+        })
+
+      }
+
+    });
+
+});
+
+
+$("form.new-cat").submit( function(e) {
+    var cat_name = $("#cat-name").val();
+    var cat_image = $("#cat-image").val();
+
+    if (cat_name == "" && cat_image == ""){
+      alert("Fields Missing: Cat Name and Cat Image URL")
+    }
+
+    else if (cat_image == ""){
+      alert("Fields Missing: Cat Image URL")
+    }
+
+    else if (cat_name == ""){
+      alert("Fields Missing: Cat Name")
+    }
+
+    else{
+
+      $.ajax({
+        type: 'POST',
+        url: (host + "/shops/" + activeShop.id + "/cats"),
+        data: {
+          name: cat_name,
+          imageUrl: cat_image
+        },
+        success: function(data){
+          //refresh cats
+          $.get(host + "/shops/" + activeShop.id + "/cats", function (c){
+            vm.cats = c
+            console.log("Got cats:", vm.cats)
+            renderCats(vm.cats)
+          })
+        
+          //refresh dogs
+          $.get(host + "/shops/" + activeShop.id + "/dogs", function (d){
+            vm.dogs = d
+            console.log("Got dogs:", vm.dogs)
+            renderDogs(vm.dogs)
+          })
+        },
+        failure: function(data){
+          alert("Failed To Load Cat")
+        }
+      });
+
+  }
+
+    e.preventDefault();
+    return false;
+});
+
+
+
+$("form.new-dog").submit( function(e) {
+    var dog_name = $("#dog-name").val();
+    var dog_image = $("#dog-image").val();
+    var dog_hap = $("#dog-happy").val();
+
+    if (dog_name == "" && dog_image == "" && dog_hap == ""){
+      alert("Fields Missing: Dog Name and Dog Image URL and Dog Happiness")
+    }
+
+    else if (dog_name == "" && dog_image == ""){
+      alert("Fields Missing: Dog Name and Dog Image URL")
+    }
+
+    else if (dog_name == "" && dog_hap == ""){
+      alert("Fields Missing: Dog Name and Dog Happiness")
+    }
+
+    else if (dog_image == "" && dog_hap == ""){
+      alert("Fields Missing: Dog Image URL and Dog Happiness")
+    }
+
+    else if (dog_image == ""){
+      alert("Fields Missing: Dog Image URL")
+    }
+
+    else if (dog_name == ""){
+      alert("Fields Missing: Dog Name")
+    }
+
+    else if (dog_hap == ""){
+      alert("Fields Missing: Dog Happiness")
+    }
+
+    else if (parseInt(dog_hap) < 1 || parseInt(dog_hap) > 5){
+      alert("Dog Happiness must be between 1 and 5")
+    }
+
+    else{
+
+      $.ajax({
+        type: 'POST',
+        url: (host + "/shops/" + activeShop.id + "/dogs"),
+        data: {
+          name: dog_name,
+          imageUrl: dog_image,
+          happiness: dog_hap
+        },
+        success: function(data){
+          //refresh cats
+          $.get(host + "/shops/" + activeShop.id + "/cats", function (c){
+            vm.cats = c
+            console.log("Got cats:", vm.cats)
+            renderCats(vm.cats)
+          })
+        
+          //refresh dogs
+          $.get(host + "/shops/" + activeShop.id + "/dogs", function (d){
+            vm.dogs = d
+            console.log("Got dogs:", vm.dogs)
+            renderDogs(vm.dogs)
+          })
+        },
+        failure: function(data){
+          alert("Failed To Load Dog")
+        }
+      });
+
+  }
+
+    e.preventDefault();
+    return false;
+});
+
+
+
+var renderCats = function (cats) {
+
+  var divvy = $('div.cats').empty()
+
+  cats.forEach(function(c) {
+   
+    var div_pd = $('<div class="pet cat">')
+    var div_n = $('<div class="name">')
+    var img = $('<img>')
+    var aa = $('<a class="adopt">')
+    var div_adp = $('<div class="adopted-status">')
+    var br = $('<br />')
+
+    aa.text("Adopt this Pet")
+    aa.attr("href", "#"+ c.id)
+
+    if (!c.adopted){
+      div_adp.append("Adopted - No :( ")
+      div_adp.append(br)
+      div_adp.append(aa)
+    }
+    else{
+      div_adp.append("Adopted - Yes! :)")
+    }
+    
+    img.attr("src", c.imageUrl)
+
+    div_n.text(c.name)
+
+    div_pd.append(div_n)
+    div_pd.append(img)
+    div_pd.append(div_adp)
+    div_pd.append(br)
+    divvy.append(div_pd)
+
+  });
+}
+
+var renderDogs = function (dogs) {
+
+  var divvy = $('div.dogs').empty()
+
+  dogs.forEach(function(d) {
+
+    var div_pd = $('<div class="pet dog">')
+    var div_n = $('<div class="name">')
+    var img = $('<img>')
+    var aa = $('<a class="adopt">')
+    var div_adp = $('<div class="adopted-status">')
+    var br = $('<br />')
+
+    aa.text("Adopt this Pet")
+
+    aa.attr("href", "#"+ d.id)
+
+    if (!d.adopted){
+      div_adp.append("Adopted - No :( ")
+      div_adp.append(br)
+      div_adp.append(aa)
+    }
+    else{
+      div_adp.append("Adopted - Yes! :)")
+    }
+
+    img.attr("src", d.imageUrl)
+
+    div_n.text(d.name, "happiness:" , d.happiness)
+
+    div_pd.append(div_n)
+    div_pd.append(img)
+    div_pd.append(div_adp)
+    div_pd.append(br)
+    divvy.append(div_pd)
+
+  });
+}
+
+</script>
+
+</body>
+</html>
